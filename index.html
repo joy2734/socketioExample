@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- Socket.IO chat -->
+    <title>none</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <style>
+      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #efefef; }
+      .connect-user{
+        text-align: center;
+        font-size: 10px;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <script src="/socket.io/socket.io.js"></script>
+  <body>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+  </body>
+    <div id="setNickname" style="display: none; height: 100px; width: 200px;">
+        닉네임: <input type="text" name="nickname" />
+    </div>
+
+  <script>
+    var socket = io();
+
+    var messages = document.getElementById('messages');
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(input.value){
+          socket.emit('chat message', input.value);
+          input.value = '';
+      }
+    });
+
+    socket.on('user connect', function(userInfo){
+        console.log(userInfo)
+        if(userInfo.useNickname){
+            document.title = userInfo.userName;
+            var item = '<li><div class="connect-user">'+
+                userInfo.userName+'가 접속하였습니다.'
+                +'</div></li>';
+    
+            $('#messages').append(item);
+        }
+    });
+
+    socket.on('user disconnect', function(userInfo){
+        var item = '<li><div class="connect-user">'+
+            userInfo.userName+'가 방을나갔습니다.'
+            +'</div></li>';
+
+        $('#messages').append(item);
+    });
+
+    socket.on('chat message', function(msg){
+        var item = document.createElement('li');
+        item.textContent = msg;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    function setUserNickName(inputVal){
+        //console.log(inputVal)
+        socket.emit('set nickname', inputVal);
+    }
+
+    $('#setNickname').dialog({
+      autoOpen: false,
+      title: '닉네임설정',
+      height: 180,
+      width: 350,
+      modal: true,
+      buttons: [{
+        text: "설정",
+        click: function(input) {
+          if($('input[name="nickname"]').val() ===''){
+            alert('닉네임을 입력해주세요.')
+            return;
+          }
+          setUserNickName($('input[name="nickname"]').val())
+          $( this ).dialog( "close" );
+        }
+      },{
+        text: "close",
+        click: function() {
+          $( this ).dialog( "close" );
+        }
+      }]
+    });
+
+    $('#setNickname').dialog('open')
+</script>
+</html>
