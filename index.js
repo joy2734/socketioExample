@@ -10,6 +10,7 @@ app.get('/', (req, res)=>{
 })
 
 var sockets = []
+var conUser =[];
 io.on('connection', (socket)=>{
     const id = socket.id;
     //socket.broadcast.emit('접속완료');
@@ -21,17 +22,28 @@ io.on('connection', (socket)=>{
     io.emit('user connect', {status: 'login', useNickname: false, userName: id});
     
     socket.on('set nickname', (nickname)=>{
-        console.log(nickname)
+        //console.log(nickname)
         sockets[id] = nickname;
+        conUser.push(nickname);
         io.emit('user connect', {status: 'login', userName: nickname, useNickname: true});
     });
 
-    socket.on('chat message', (msg)=>{
-        io.emit('chat message', msg);
+    socket.on('chat message', (msgInfo)=>{
+        //msgInfo 채팅유저/메세지내용
+        io.emit('chat message', msgInfo);
     });    
     
     socket.on('disconnect', () => {
+        conUser = conUser.filter(user => user != sockets[id]);
         io.emit('user disconnect', {status: 'logout', userName: sockets[id]});
+    });
+
+    socket.on('req connectlist', ()=>{
+        io.emit('get connectlist', conUser);
+    });
+
+    socket.on('typing user', (typingInfo)=>{
+        io.emit('set typing', typingInfo);
     });
 
 });
