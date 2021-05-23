@@ -7,7 +7,7 @@
     <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <style>
-      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      body { margin: 0; padding-bottom: 4.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column;}
 
       #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 20px; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
       #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
@@ -74,6 +74,7 @@
   <script src="/socket.io/socket.io.js"></script>
   <body style="background : #93b5de;">
     <div class="connect-user-info">
+      <button id="regNickname">닉네임등록</button>
       <button id="openlist">접속사용자</button>
     </div>
     <ul id="messages"></ul>
@@ -82,8 +83,9 @@
     </form>
     <div class="typing-info"></div>
   </body>
-    <div id="setNickname" style="display: none; height: 100px; width: 200px;">
+    <div id="nicknameDialog" style="display: none; height: 100px; width: 200px;">
         닉네임: <input type="text" name="nickname" />
+        <p>※ 닉네임을 설정해야 사용가능</p>
     </div>
     <div id="connect-list-dialog">
       <ul id="connect-list"></ul>
@@ -99,6 +101,10 @@
 
     form.addEventListener('submit', function(e){
       e.preventDefault();
+      if(!userName){
+        alert('닉네임을 등록해야 사용하실수 있습니다.')
+        return;
+      }
       if(input.value){
           socket.emit('chat message', [input.value, userName]);
           input.value = '';
@@ -161,6 +167,7 @@
     //function
 
     function setUserNickName(inputVal){
+        $('#regNickname').hide();
         socket.emit('set nickname', inputVal);
     }
 
@@ -170,6 +177,10 @@
 
     /// events
     
+    $('#regNickname').on('click', function(){
+      $('#nicknameDialog').dialog('open');
+    });
+
     $('#openlist').on('click', function(){
       $('#connect-list-dialog').dialog('open');
     });
@@ -181,6 +192,7 @@
             return;
         }
         setUserNickName($('input[name="nickname"]').val())
+        $( '#nicknameDialog' ).dialog( "close" );
       }
 
     });
@@ -195,10 +207,10 @@
 
     ///dialog
 
-    $('#setNickname').dialog({
+    $('#nicknameDialog').dialog({
       autoOpen: false,
       title: '닉네임설정',
-      height: 180,
+      height: 220,
       width: 350,
       modal: true,
       buttons: [{
@@ -209,11 +221,6 @@
             return;
           }
           setUserNickName($('input[name="nickname"]').val())
-          $( this ).dialog( "close" );
-        }
-      },{
-        text: "close",
-        click: function() {
           $( this ).dialog( "close" );
         }
       }]
@@ -240,6 +247,6 @@
       $(".typing-info").toggle();
     }, 250);
 
-    $('#setNickname').dialog('open')
+    $('#nicknameDialog').dialog('open')
 </script>
 </html>
